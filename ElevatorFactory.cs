@@ -5,17 +5,18 @@ namespace Elevator
         private static int _elevatorId;
 
         private static ElevatorFactory _instance = null;
-        public static Instance
+        public static ElevatorFactory Instance
         {
             get
             {
-                if(_instance == null)
+                if (_instance == null)
                 {
                     _instance = new ElevatorFactory();
                 }
 
                 return _instance;
-            }}
+            }
+        }
 
         private ElevatorFactory()
         {

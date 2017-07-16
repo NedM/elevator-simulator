@@ -1,8 +1,10 @@
+using System;
+
 namespace Elevator
 {
     public class FloorRequest
     {
-        protected FloorRequest(int floor, Direction direction = Direction.None)
+        public FloorRequest(int floor, Direction direction = Direction.None)
         {
             Floor = floor;
             Direction = direction;
@@ -14,7 +16,7 @@ namespace Elevator
 
         public override string ToString()
         {
-            return $"({Floor}, {enum.GetName(typeof(Direction), Direction})";
+            return $"({Floor}, {Enum.GetName(typeof(Direction), Direction)})";
         }
     }
 }

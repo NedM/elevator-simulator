@@ -1,3 +1,5 @@
+using System.Threading;
+
 namespace Elevator
 {
     public class ElevatorSystem
@@ -11,12 +13,18 @@ namespace Elevator
 
         public void RunAll()
         {
-
+            foreach (IElevator elevator in _elevators)
+            {
+                elevator.Run();
+            }
         }
 
         public void StopAll()
         {
-
+            foreach (IElevator elevator in _elevators)
+            {
+                elevator.Stop();
+            }
         }
     }
 }

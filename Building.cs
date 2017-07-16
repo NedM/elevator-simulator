@@ -1,3 +1,6 @@
+using System;
+using System.Collections.Generic;
+
 namespace Elevator
 {
     public class Building
@@ -17,34 +20,18 @@ namespace Elevator
 
             for(int i = 0; i < _numberOfFloors; i++)
             {
-                _floors.add(i, new Floor(i));
+                _floors.Add(i, new Floor(i));
             }
+        }
 
-            public Floor GetFloor(int floorNumber)
+        public Floor GetFloor(int floorNumber)
+        {
+            if (floorNumber > _numberOfFloors || floorNumber < 0)
             {
-                if(floorNumber > _numberOfFloors || floorNumber < 0)
-                {
-                    throw new ArgumentOutOfRangeException();
-                }
-
-                return _floors[floorNumber];
+                throw new ArgumentOutOfRangeException();
             }
-        }
-    }
 
-    public class Floor
-    {
-        private readonly int _floorNumber;
-        public Floor(int floorNumber)
-        {
-            _floorNumber = floorNumber;
-        }
-
-        public int Number { get { return _floorNumber} }
-
-        public FloorRequest RequestElevator(Direction direction)
-        {
-            return new FloorRequest(Number, direction);
+            return _floors[floorNumber];
         }
     }
 }

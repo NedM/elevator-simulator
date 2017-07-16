@@ -4,6 +4,9 @@ namespace Elevator
     {
         int Id { get; }
         void Run();
-        void AddFloorRequest(FloorRequest request);
+        void Stop();
+        void RequestFloor(Floor floor);
+        void RequestFloor(int floorNumber);
+        void RequestElevator(Floor floor, Direction direction);
     }
 }
