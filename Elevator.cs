@@ -1,4 +1,6 @@
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Threading;
 
 namespace Elevator
@@ -13,8 +15,9 @@ namespace Elevator
         private Status _status;
         private Thread _runThread;
 
-        public Elevator(int id, int highestFloor, int lowestFloor)
+        public Elevator(int id, Floor highestFloor, Floor lowestFloor)
         {
+            //IComparer<int> ascending = new Comparison<int>((a, b) => a.CompareTo(b));
             _upDirectionQueue = new FloorRequestQueue();
             _downDirectionQueue = new FloorRequestQueue();
             _stop = true;
@@ -27,11 +30,11 @@ namespace Elevator
             _status = Status.Idle;
         }
 
-        public int CurrentFloor { get; private set; }
+        public Floor CurrentFloor { get; private set; }
         public Direction DirectionOfTravel { get; private set; }
-        public int HighestFloor { get; private set; }
+        public Floor HighestFloor { get; private set; }
         public int Id { get; private set;}
-        public int LowestFloor { get; private set; }
+        public Floor LowestFloor { get; private set; }
 
         public void Run()
         {
@@ -40,7 +43,23 @@ namespace Elevator
             {
                 while (!_stop)
                 {
+                    if(!_upDirectionQueue.Any && !_downDirectionQueue.Any)
+                    {
+                        _status = Status.Idle;
+                        DirectionOfTravel = Direction.None;
+                        Thread.Sleep(50);
+                        continue;
+                    }
+                    
+                    if(DirectionOfTravel == Direction.Up)
+                    {
+                        if (_upDirectionQueue.Any)
+                        {
 
+                        }
+                    }
+
+                    
                 }
             })
             {
@@ -59,22 +78,17 @@ namespace Elevator
 
         public void RequestFloor(Floor floor)
         {
-            RequestFloor(floor.Number);
-        }
-
-        public void RequestFloor(int floorNumber)
-        {
-            if(floorNumber == CurrentFloor)
+            if(floor == CurrentFloor)
             {
                 return;
             }
 
-            AddFloorRequest(new FloorRequest(floorNumber, Direction.None));
+            AddFloorRequest(new FloorRequest(floor, Direction.None));
         }
 
-        public void RequestElevator(Floor floor, Direction direction)
+        public void RequestFloor(int floorNumber)
         {
-            AddFloorRequest(new FloorRequest(floor.Number, direction));
+            RequestFloor(new Floor(floorNumber));
         }
 
         private void AddFloorRequest(FloorRequest request)
@@ -108,14 +122,14 @@ namespace Elevator
 
         private bool IsOnTheWayDown(FloorRequest request)
         {
-            return request.Floor < CurrentFloor && 
+            return request.Floor.CompareTo(CurrentFloor) < 0 && 
                 request.Direction != Direction.Up && 
                 DirectionOfTravel != Direction.Up;
         }
 
         private bool IsOnTheWayUp(FloorRequest request)
         {
-            return request.Floor >= CurrentFloor && 
+            return request.Floor.CompareTo(CurrentFloor) >= 0 && 
                 request.Direction != Direction.Down &&
                 DirectionOfTravel != Direction.Down;
         }

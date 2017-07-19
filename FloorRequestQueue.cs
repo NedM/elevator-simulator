@@ -1,37 +1,42 @@
-using System.Collections.Generic;
+using System;
+using System.Collections;
 
 namespace Elevator
 {
     public class FloorRequestQueue
     {
-        private SortedList<int, Direction> _queue;
+        private SortedLinkedList<FloorRequest> _queue;
 
-        public FloorRequestQueue()
+        private readonly Comparison<FloorRequest> _comparisonLogic;
+
+        public FloorRequestQueue(Comparison<FloorRequest> comparisonLogic = null)
         {
-            _queue = new SortedList<int, Direction>();
+            _queue = new SortedLinkedList<FloorRequest>(comparisonLogic);
+            _comparisonLogic = comparisonLogic;            
         }
+
+        public bool Any { get { return _queue.First != null; } }
 
         public void Add(FloorRequest request)
         {
-            if(!_queue.ContainsKey(request.Floor))
-            {
-                _queue.Add(request.Floor, request.Direction);
-            }
+            _queue.Add(request);
+        }        
+
+        public FloorRequest Peek()
+        {
+            return _queue.First;
+        }
+
+        public FloorRequest Dequeue()
+        {
+            FloorRequest request = Peek();
+            _queue.Remove(request);
+            return request;
         }
 
         public void Remove(FloorRequest request)
         {
-            _queue.Remove(request.Floor);
-        }
-
-        public void RemoveHighest()
-        {
-            _queue.RemoveAt(_queue.Count - 1);
-        }
-
-        public void RemoveLowest()
-        {
-            _queue.RemoveAt(0);
+            _queue.Remove(request);
         }
 
         public override string ToString()
