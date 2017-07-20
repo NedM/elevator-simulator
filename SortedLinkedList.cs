@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text;
 
 namespace Elevator
 {
@@ -14,7 +15,7 @@ namespace Elevator
             _comparisonLogic = comparisonLogic;
         }
 
-        public T First => _list != null && _list.Count > 0 ? _list.First.Value : default(T);
+        public LinkedListNode<T> First => _list != null && _list.Count > 0 ? _list.First : null;
 
         public int Count => _list == null ? 0 : _list.Count;
 
@@ -49,6 +50,19 @@ namespace Elevator
         public void Remove(T element)
         {
             _list.Remove(element);
+        }
+
+        public T[] ToArray()
+        {
+            T[] array = new T[_list.Count];
+            _list.CopyTo(array, 0);
+
+            return array;
+        }
+
+        public override string ToString()
+        {            
+            return $"[{string.Join(", ", _list)}]";
         }
     }
 }

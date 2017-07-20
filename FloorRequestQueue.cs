@@ -24,7 +24,7 @@ namespace Elevator
 
         public FloorRequest Peek()
         {
-            return _queue.First;
+            return _queue.First?.Value;
         }
 
         public FloorRequest Dequeue()
