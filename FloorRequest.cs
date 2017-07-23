@@ -4,13 +4,17 @@ namespace Elevator
 {
     public class FloorRequest : IComparable
     {
-        public FloorRequest(Floor floor, Direction direction = Direction.None)
+        public FloorRequest(Floor floor, Direction direction = Direction.None) : this(floor.Number, direction)
         {
-            Floor = floor;
+        }
+
+        public FloorRequest(int floorNumber, Direction direction = Direction.None)
+        {
+            Floor = floorNumber;
             Direction = direction;
         }
 
-        public Floor Floor { get; private set; }
+        public int Floor { get; private set; }
 
         public Direction Direction { get; private set; }
 

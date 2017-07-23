@@ -25,7 +25,7 @@ namespace Elevator
 
         public IElevator Create(int highestFloor = 10, int lowestFloor = 0)
         {
-            return new Elevator(++_elevatorId, new Floor(highestFloor), new Floor(lowestFloor));
+            return new Elevator(++_elevatorId, highestFloor, lowestFloor);
         }
     }
 }

@@ -1,10 +1,12 @@
+using log4net;
 using System;
-using System.Collections;
 
 namespace Elevator
 {
     public class FloorRequestQueue
     {
+        private ILog _log = LogManager.GetLogger(typeof(ElevatorSystem));
+
         private SortedLinkedList<FloorRequest> _queue;
 
         private readonly Comparison<FloorRequest> _comparisonLogic;
@@ -12,7 +14,7 @@ namespace Elevator
         public FloorRequestQueue(Comparison<FloorRequest> comparisonLogic = null)
         {
             _queue = new SortedLinkedList<FloorRequest>(comparisonLogic);
-            _comparisonLogic = comparisonLogic;            
+            _comparisonLogic = comparisonLogic;
         }
 
         public bool Any { get { return _queue.First != null; } }
@@ -20,7 +22,8 @@ namespace Elevator
         public void Add(FloorRequest request)
         {
             _queue.Add(request);
-        }        
+            _log.Debug($"Added request {request} to queue. The queue currently holds {_queue.Count} requests.");
+        }
 
         public FloorRequest Peek()
         {
@@ -30,7 +33,10 @@ namespace Elevator
         public FloorRequest Dequeue()
         {
             FloorRequest request = Peek();
-            _queue.Remove(request);
+            Remove(request);
+
+            _log.Debug($"Dequeued request {request} from front of queue. The queue currently holds {_queue.Count} requests.");
+
             return request;
         }
 

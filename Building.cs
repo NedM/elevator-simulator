@@ -5,44 +5,37 @@ namespace Elevator
 {
     public class Building
     {
-        private Dictionary<int, Floor> _floors;
-        
-        //TODO: Add Elevator System
-        
-        //TODO: Add concept of elevator banks that service different floors?
+        private static Building _instance;
 
-        public Building(int numberOfFloors)
+        public static void Initialize(ElevatorSystem system)
         {
-            if (numberOfFloors < 1)
-            {
-                throw new ArgumentOutOfRangeException("A building must have at least 1 floor.");
-            }
-
-            Initialize(0, numberOfFloors);
+            _instance = new Building(system);
         }
 
-        public Building(int lowestFloor, int highestFloor)
+        public static Building Instance
         {
-            if(lowestFloor >= highestFloor)
+            get
             {
-                throw new ArgumentException($"Lowest floor ({lowestFloor}) must be lower than highest floor ({highestFloor})!");
-            }
-
-            Initialize(lowestFloor, highestFloor);
-        }
-
-        public Building(IReadOnlyCollection<Floor> floors)
-        {
-            _floors = new Dictionary<int, Floor>(floors.Count);
-
-            foreach(Floor f in floors)
-            {
-                if (_floors.ContainsKey(f.Number))
+                if (null == _instance)
                 {
-                    throw new ArgumentException($"Duplicated floor entry: {_floors[f.Number]} & {f}.");
+                    throw new InvalidOperationException("Must initialize before use!");
                 }
 
-                _floors.Add(f.Number, f);
+                return _instance;
+            }
+        }
+
+        private readonly Dictionary<int, Floor> _floors;
+
+        //TODO: Add concept of elevator banks that service different floors
+
+        private Building(ElevatorSystem system)
+        {
+            _floors = new Dictionary<int, Floor>();
+
+            for (int i = system.LowestFloorServiced; i < system.HighestFloorServiced; i++)
+            {
+                _floors.Add(i, new Floor(system, i));
             }
         }
 
@@ -50,21 +43,5 @@ namespace Elevator
         {
             return _floors.ContainsKey(floorNumber) ? _floors[floorNumber] : null;
         }
-
-        private void Initialize(int lowestFloor, int highestFloor)
-        {
-            _floors = new Dictionary<int, Floor>();
-
-            for (int i = lowestFloor; i < highestFloor; i++)
-            {
-                _floors.Add(i, new Floor(i));
-            }
-        }
-
-        //public void RequestElevator(IRequestElevator requestor, Direction direction)
-        //{
-        //    //Get best elevator to service request then add floor request to the queue
-        //    AddFloorRequest(new FloorRequest(requestor.Floor, direction));
-        //}
     }
 }

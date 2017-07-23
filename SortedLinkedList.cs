@@ -1,4 +1,5 @@
-﻿using System;
+﻿using log4net;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 
@@ -9,6 +10,7 @@ namespace Elevator
     {
         private LinkedList<T> _list;
         private Comparison<T> _comparisonLogic;
+        private ILog _log = LogManager.GetLogger(typeof(ElevatorSystem));
 
         public SortedLinkedList(Comparison<T> comparisonLogic)
         {
@@ -32,6 +34,8 @@ namespace Elevator
             if (_list.First == null)
             {
                 _list.AddFirst(element);
+                _log.Debug($"Added first element: {element} to linked list!");
+
                 return;
             }
 
@@ -41,13 +45,20 @@ namespace Elevator
             {
                 if (_comparisonLogic.Invoke(element, node.Value) < 0)
                 {
-                    _list.AddBefore(node, new LinkedListNode<T>(element));
+                    LinkedListNode<T> newNode = new LinkedListNode<T>(element);
+                    _list.AddBefore(node, newNode);
+
+                    _log.Debug($"Added {element} between {newNode.Previous.Value} and {node.Value}.");
+
                     break;
                 }
 
                 if (node.Next == null)
                 {
-                    _list.AddAfter(node, new LinkedListNode<T>(element));
+                    LinkedListNode<T> newNode = new LinkedListNode<T>(element);
+                    _list.AddAfter(node, newNode);
+                    _log.Debug($"Added {element} to end of the linked list just after {node.Value}.");
+
                     break;
                 }
 

@@ -4,11 +4,21 @@ namespace Elevator
 {
     public class Floor : IComparable, IComparable<Floor>, IRequestElevator
     {
+        private readonly ElevatorSystem _elevators;
         private readonly string _name;
         private readonly int _number;
 
-        public Floor(int number, string name = null)
-        {            
+        //TODO: Restrict to collection of elevators serving this floor
+
+        public Floor(ElevatorSystem elevatorSystem, int number, string name = null)
+        {
+            if(elevatorSystem.HighestFloorServiced < number || elevatorSystem.LowestFloorServiced > number)
+            {
+                throw new ArgumentException($"No elevators in the system can serve this floor! This floor is number {number}. " +
+                    $"The lowest floor served is {elevatorSystem.LowestFloorServiced} and the highest floor served is {elevatorSystem.HighestFloorServiced}.");
+            }
+
+            _elevators = elevatorSystem;
             _number = number;
             _name = name;
         }
@@ -41,7 +51,7 @@ namespace Elevator
 
         public int RequestElevator(Direction direction)
         {
-            throw new NotImplementedException();
+            return _elevators.RequestElevator(new FloorRequest(this, direction));
         }
 
         public override int GetHashCode()
