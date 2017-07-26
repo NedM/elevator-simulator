@@ -23,6 +23,7 @@ namespace ElevatorSimulator
 
             ElevatorSystem system = new ElevatorSystem(new IElevator[]{
                 ElevatorFactory.Instance.Create(),
+                ElevatorFactory.Instance.Create(),
             });
 
             Building.Initialize(system);
@@ -59,7 +60,8 @@ namespace ElevatorSimulator
                 }
                 catch(Exception e)
                 {
-                    _log.Fatal(e.Message);
+                    _log.Error(e.Message);
+                    _log.Fatal(e.ToString());
                 }
             })
             {
@@ -74,7 +76,14 @@ namespace ElevatorSimulator
 
         private static bool CheckForExitCommand(string command)
         {
-            return command.CompareTo(EXIT_COMMAND) == 0;
+            bool shouldExit = command.CompareTo(EXIT_COMMAND) == 0;
+
+            if (shouldExit)
+            {
+                _log.Info("Received exit command!");
+            }
+
+            return shouldExit;
         }
 
         private static void HandleInsideElevator(ElevatorSystem system, Building building)

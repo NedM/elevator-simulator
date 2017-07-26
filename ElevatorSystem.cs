@@ -16,7 +16,9 @@ namespace Elevator
         }
 
         public int[] Elevators { get { return _elevators.Select(e => e.Id).ToArray(); } }
+
         public Floor HighestFloorServiced { get { return _elevators.Max(e => e.HighestFloor); } }
+
         public Floor LowestFloorServiced { get { return _elevators.Min(e => e.LowestFloor); } }
 
         public IElevator GetElevator(int elevatorId)
@@ -40,13 +42,11 @@ namespace Elevator
             //   Find nearest elevator moving in the correct direction and request floor on that elevator
             //   Find least busy elevator and dispatch request
 
-            //var simple = _elevators.Where(e => e.IsIdle);
-            //var result = _elevators.Where(e => (e.IsIdle || (e.DirectionOfTravel == request.Direction)));
             var firstIdleElevator = _elevators.FirstOrDefault(e => (e.IsIdle || (e.DirectionOfTravel == request.Direction)));
 
             IElevator target = firstIdleElevator != null ? firstIdleElevator : GetRandomElevator();
 
-            _log.Info($"Dispatching floor request {request} to elevator {target.Id}.");
+            _log.Debug($"Dispatching floor request {request} to elevator {target.Id}.");
 
             target.RequestFloor(request);
 

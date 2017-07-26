@@ -9,9 +9,7 @@ namespace Elevator
     {
         private enum Status { Idle, Running }
 
-        private const int ELEVATOR_SPEED = 1000; // Number of milliseconds required to move between floors
-
-        private static object sync_lock = new object();
+        private const int ELEVATOR_SPEED = 2000; // Number of milliseconds required to move between floors
 
         private static Comparison<FloorRequest> ascending = (a, b) => a.CompareTo(b);
         private static Comparison<FloorRequest> descending = (a, b) => b.CompareTo(a);
@@ -63,7 +61,7 @@ namespace Elevator
                     }
 
                     _status = Status.Running;
-                    _log.Debug($"Elevator {Id} is running!");
+                    //_log.Debug($"Elevator {Id} is running!");
                     ServiceFloorRequests();
                 }
 
@@ -87,21 +85,11 @@ namespace Elevator
 
         public void RequestFloor(int floorNumber, Direction direction = Direction.None)
         {
-            if (floorNumber == CurrentFloor.Number)
-            {
-                return;
-            }
-
-            AddFloorRequest(new FloorRequest(floorNumber, direction));
+            RequestFloor(new FloorRequest(floorNumber, direction));            
         }
 
         public void RequestFloor(FloorRequest request)
         {
-            if(request.Floor == CurrentFloor)
-            {
-                return;
-            }
-
             AddFloorRequest(request);
         }
 
@@ -110,30 +98,27 @@ namespace Elevator
             _log.Info($"Elevator {Id} received floor request {request}.");
 
             StringBuilder sb = new StringBuilder($"Adding Floor Request: {request} to ");
+            string queueContents;
 
             switch (DetermineRequestQueue(request))
             {
                 case Direction.Up:
-                    lock (sync_lock)
-                    {
-                        _upDirectionQueue.Add(request);
-                    }
+                    _upDirectionQueue.Add(request);                    
 
                     sb.Append("up direction queue");
+                    queueContents = _upDirectionQueue.ToString();
                     break;
                 case Direction.Down:
-                    lock (sync_lock)
-                    {
-                        _downDirectionQueue.Add(request);
-                    }
+                    _downDirectionQueue.Add(request);
 
                     sb.Append("down direction queue");
+                    queueContents = _downDirectionQueue.ToString();
                     break;
                 default:
                     throw new InvalidOperationException("Invalid direction request queue!");
             }
 
-            sb.Append($" for elevator {Id}.");
+            sb.Append($" for elevator {Id}. Queue contains: {queueContents}.");
 
             _log.Debug(sb.ToString());
         }
@@ -215,7 +200,7 @@ namespace Elevator
                     break;
             }
 
-            _log.Info($"Moving elevator {Id} {dirString} 1 floor.");
+            _log.Debug($"Moving elevator {Id} {dirString} 1 floor.");
             Thread.Sleep(ELEVATOR_SPEED);  //Simulate time required to move between floors
             _log.Info($"Elevator {Id} is now at floor {CurrentFloor}.");
         }
@@ -283,10 +268,7 @@ namespace Elevator
             if (ShouldStop(_downDirectionQueue))
             {
                 FloorRequest stopFloor = null;
-                lock (sync_lock)
-                {
-                    stopFloor = _downDirectionQueue.Dequeue();
-                }
+                stopFloor = _downDirectionQueue.Dequeue();
 
                 StopAtFloor(stopFloor);
             }
@@ -303,10 +285,7 @@ namespace Elevator
             {
                 FloorRequest stopFloor = null;
 
-                lock (sync_lock)
-                {
-                    stopFloor = _upDirectionQueue.Dequeue();
-                }
+                stopFloor = _upDirectionQueue.Dequeue();
 
                 StopAtFloor(stopFloor);
             }
@@ -321,12 +300,12 @@ namespace Elevator
         {
             if (DirectionOfTravel == Direction.Up)
             {
-                return CurrentFloor == HighestFloor || !_upDirectionQueue.Any; // || NextRequestedFloorBelow(_upDirectionQueue);
+                return CurrentFloor == HighestFloor || !_upDirectionQueue.Any;
             }
 
             if (DirectionOfTravel == Direction.Down)
             {
-                return CurrentFloor == LowestFloor || !_downDirectionQueue.Any; // || NextRequestedFloorAbove(_downDirectionQueue);
+                return CurrentFloor == LowestFloor || !_downDirectionQueue.Any;
             }
 
             return false;
