@@ -2,6 +2,7 @@
 {
     public interface IRequestElevator
     {
-        int RequestElevator(Direction direction);
+        int RequestElevator(int floorNumber, Direction direction);
+        int RequestElevator(FloorRequest request);
     }
 }

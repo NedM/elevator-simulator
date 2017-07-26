@@ -2,12 +2,12 @@ namespace Elevator
 {
     public interface IElevator
     {
-        int CurrentFloor { get; }
+        Floor CurrentFloor { get; }
         Direction DirectionOfTravel { get; }
-        int HighestFloor { get; }
+        Floor HighestFloor { get; }
         int Id { get; }
         bool IsIdle { get; }
-        int LowestFloor { get; }
+        Floor LowestFloor { get; }
         void RequestFloor(int floorNumber, Direction direction);
         void RequestFloor(FloorRequest request);
         void Run();

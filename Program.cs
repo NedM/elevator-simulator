@@ -12,13 +12,16 @@ namespace ElevatorSimulator
     class Program
     {
         private const string EXIT_COMMAND = "exit";
+        private static ILog _log;
 
         static void Main(string[] args)
         {
             var logRepository = LogManager.GetRepository(Assembly.GetEntryAssembly());
             XmlConfigurator.Configure(logRepository, new FileInfo("log4net.config"));
 
-            ElevatorSystem system = new ElevatorSystem(new Elevator.IElevator[]{
+            _log = LogManager.GetLogger(typeof(ElevatorSystem));
+
+            ElevatorSystem system = new ElevatorSystem(new IElevator[]{
                 ElevatorFactory.Instance.Create(),
             });
 
@@ -26,31 +29,46 @@ namespace ElevatorSimulator
 
             system.RunAll();
 
-            string userSelection = null;
             Console.WriteLine("Welcome to the Elevator System! " + Environment.NewLine +
                 "Please enter selections at the prompts to enter floor requests. " + Environment.NewLine +
                 "Type \"exit\" at the prompt to terminate the program.");
 
-            while (true)
+            Thread userInputThread = new Thread(() =>
             {
-                string response = PromptForInput("Are you already in the elevator?", new string[] { "y", "n", "exit" });
-
-                if (CheckForExitCommand(response))
+                try
                 {
-                    break;
-                }
-                else if (response.CompareTo("n") == 0)
-                {
-                    HandleOutsideElevator(system, Building.Instance);
-                }
-                else
-                {
-                    HandleInsideElevator(system, Building.Instance);
-                }
+                    while (true)
+                    {
+                        string response = PromptForInput("Are you already in the elevator?", new string[] { "y", "n", "exit" });
 
-                Thread.Sleep(2500);
-            }
+                        if (CheckForExitCommand(response))
+                        {
+                            break;
+                        }
+                        else if (response.CompareTo("n") == 0)
+                        {
+                            HandleOutsideElevator(system, Building.Instance);
+                        }
+                        else
+                        {
+                            HandleInsideElevator(system, Building.Instance);
+                        }
 
+                        Thread.Sleep(2500);
+                    }
+                }
+                catch(Exception e)
+                {
+                    _log.Fatal(e.Message);
+                }
+            })
+            {
+                IsBackground = false,
+            };
+
+            userInputThread.Start();
+
+            userInputThread.Join();
             system.StopAll();
         }
 
@@ -81,7 +99,7 @@ namespace ElevatorSimulator
                 {
                     return;
                 }
-            } while (!int.TryParse(response, out floorNum) && floorNum <= system.HighestFloorServiced && floorNum >= system.LowestFloorServiced);
+            } while (!int.TryParse(response, out floorNum) && floorNum <= system.HighestFloorServiced.Number && floorNum >= system.LowestFloorServiced.Number);
 
             system.GetElevator(elevatorId).RequestFloor(floorNum, Direction.None);
         }
@@ -103,7 +121,7 @@ namespace ElevatorSimulator
                     return;
                 }
 
-            } while ((!int.TryParse(response, out floorNum)) || floorNum > system.HighestFloorServiced || floorNum < system.LowestFloorServiced);
+            } while ((!int.TryParse(response, out floorNum)) || floorNum > system.HighestFloorServiced.Number || floorNum < system.LowestFloorServiced.Number);
 
             Floor floor = building.GetFloor(floorNum);
 
@@ -115,7 +133,7 @@ namespace ElevatorSimulator
             }
 
             string capitalized = string.Concat(char.ToUpper(response[0]), response.Substring(1));
-            floor.RequestElevator((Direction)Enum.Parse(typeof(Direction), capitalized));
+            floor.SummonElevator(system, (Direction)Enum.Parse(typeof(Direction), capitalized));
         }
 
         private static string PromptForInput(string promptMessage, string[] expectedValues)
@@ -125,7 +143,7 @@ namespace ElevatorSimulator
             do
             {
                 Console.WriteLine(promptMessage);
-                Console.WriteLine($"[{string.Join("/", expectedValues)}]:> ");
+                Console.Write($"[{string.Join("/", expectedValues)}]:> ");
                 response = Console.ReadLine().ToLowerInvariant();
             } while (!expectedValues.Where(v => string.Compare(v.ToLowerInvariant(), response) == 0).Any());
 

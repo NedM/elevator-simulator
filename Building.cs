@@ -33,9 +33,9 @@ namespace Elevator
         {
             _floors = new Dictionary<int, Floor>();
 
-            for (int i = system.LowestFloorServiced; i < system.HighestFloorServiced; i++)
+            for (int i = system.LowestFloorServiced.Number; i <= system.HighestFloorServiced.Number; i++)
             {
-                _floors.Add(i, new Floor(system, i));
+                _floors.Add(i, new Floor(i));
             }
         }
 

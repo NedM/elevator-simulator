@@ -2,23 +2,79 @@ using System;
 
 namespace Elevator
 {
-    public class Floor : IComparable, IComparable<Floor>, IRequestElevator
+    public class Floor : IComparable, IComparable<Floor>, ISummonElevator
     {
-        private readonly ElevatorSystem _elevators;
+        #region Operator Overrides
+
+        public static Floor operator--(Floor f)
+        {
+            if (f == null)
+            {
+                throw new ArgumentNullException();
+            }
+
+            return new Floor(f.Number - 1, f.Name);
+        }
+
+        public static Floor operator ++(Floor f)
+        {
+            if (f == null)
+            {
+                throw new ArgumentNullException();
+            }
+
+            return new Floor(f.Number + 1, f.Name);
+        }
+
+        public static bool operator >(Floor a, Floor b)
+        {
+            if(a == null || b == null)
+            {
+                throw new ArgumentNullException();
+            }
+
+            return a.CompareTo(b) > 0;
+        }
+
+        public static bool operator <(Floor a, Floor b)
+        {
+            if (a == null || b == null)
+            {
+                throw new ArgumentNullException();
+            }
+
+            return a.CompareTo(b) < 0;
+        }
+
+        public static bool operator ==(Floor a, Floor b)
+        {
+            if (ReferenceEquals(null, a))
+            {
+                return ReferenceEquals(null, b);
+            }
+
+            return a.Equals(b);
+        }
+
+        public static bool operator !=(Floor a, Floor b)
+        {
+            if (ReferenceEquals(null, a))
+            {
+                return !ReferenceEquals(null, b);
+            }
+
+            return !a.Equals(b);
+        }
+
+        #endregion Operator Overrides
+
         private readonly string _name;
         private readonly int _number;
 
         //TODO: Restrict to collection of elevators serving this floor
 
-        public Floor(ElevatorSystem elevatorSystem, int number, string name = null)
+        public Floor(int number, string name = null)
         {
-            if(elevatorSystem.HighestFloorServiced < number || elevatorSystem.LowestFloorServiced > number)
-            {
-                throw new ArgumentException($"No elevators in the system can serve this floor! This floor is number {number}. " +
-                    $"The lowest floor served is {elevatorSystem.LowestFloorServiced} and the highest floor served is {elevatorSystem.HighestFloorServiced}.");
-            }
-
-            _elevators = elevatorSystem;
             _number = number;
             _name = name;
         }
@@ -49,16 +105,6 @@ namespace Elevator
             return null == other ? 1 : Number.CompareTo(other.Number);
         }
 
-        public int RequestElevator(Direction direction)
-        {
-            return _elevators.RequestElevator(new FloorRequest(this, direction));
-        }
-
-        public override int GetHashCode()
-        {
-            return Number.GetHashCode();
-        }
-
         public override bool Equals(object obj)
         {
             Floor floor = obj as Floor;
@@ -74,6 +120,26 @@ namespace Elevator
         public bool Equals(Floor other)
         {
             return null != other && Number.Equals(other.Number);
+        }
+
+        public override int GetHashCode()
+        {
+            return Number.GetHashCode();
+        }
+
+        public bool IsAbove(Floor other)
+        {
+            return this.CompareTo(other) > 0;
+        }
+
+        public bool IsBelow(Floor other)
+        {
+            return this.CompareTo(other) < 0;
+        }
+
+        public int SummonElevator(IRequestElevator elevatorRequestor, Direction direction)
+        {
+            return elevatorRequestor.RequestElevator(new FloorRequest(this, direction));
         }
 
         public override string ToString()

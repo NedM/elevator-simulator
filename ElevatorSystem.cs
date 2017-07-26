@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace Elevator
 {
-    public class ElevatorSystem
+    public class ElevatorSystem : IElevatorSystem
     {
         private readonly IElevator[] _elevators;
         private readonly ILog _log;
@@ -16,12 +16,17 @@ namespace Elevator
         }
 
         public int[] Elevators { get { return _elevators.Select(e => e.Id).ToArray(); } }
-        public int HighestFloorServiced { get { return _elevators.Max(e => e.HighestFloor); } }
-        public int LowestFloorServiced { get { return _elevators.Min(e => e.LowestFloor); } }
+        public Floor HighestFloorServiced { get { return _elevators.Max(e => e.HighestFloor); } }
+        public Floor LowestFloorServiced { get { return _elevators.Min(e => e.LowestFloor); } }
 
         public IElevator GetElevator(int elevatorId)
         {
             return _elevators.Where(e => e.Id == elevatorId).First();
+        }
+
+        public int RequestElevator(int floorNumber, Direction direction)
+        {
+            return RequestElevator(new FloorRequest(new Floor(floorNumber), direction));
         }
 
         public int RequestElevator(FloorRequest request)
