@@ -15,9 +15,12 @@ namespace ElevatorSimulatorTest
             var list = new SortedLinkedList<Int32>(compareLogic_Ascending);
 
             Assert.NotNull(list);
+            Assert.Empty(list);
             Assert.Equal(0, list.Count);
             Assert.Equal(null, list.First?.Value);
         }
+
+        #region Add Elements
 
         [Fact]
         public void AddSingleElementToEmptyList()
@@ -120,6 +123,7 @@ namespace ElevatorSimulatorTest
             foreach (int i in unordered)
             {
                 list.Add(i);
+                System.Diagnostics.Debug.WriteLine($"Added element: {i}.");
             }
 
             Array.Sort(unordered, (a, b) => b.CompareTo(a));
@@ -127,5 +131,125 @@ namespace ElevatorSimulatorTest
             Assert.Equal(list.Count, unordered.Length);
             Assert.Equal(list.ToArray(), unordered);
         }
+
+        [Fact]
+        public void AddMultipleElementsToList_Unordered_SortedDescending_NegativeValues()
+        {
+            int[] unordered = new int[] { 5, 9, -1, 6, 4, 10, -7, 2, 3, 8 };
+            var list = new SortedLinkedList<int>(compareLogic_Descending);
+
+            foreach (int i in unordered)
+            {
+                list.Add(i);
+                System.Diagnostics.Debug.WriteLine($"Added element: {i}.");
+            }
+
+            Array.Sort(unordered, (a, b) => b.CompareTo(a));
+
+            Assert.Equal(list.Count, unordered.Length);
+            Assert.Equal(list.ToArray(), unordered);
+        }
+
+        #endregion Add Elements
+
+        #region Remove Elements
+
+        [Fact]
+        public void RemoveElementFromEmptyList_DoesNotThrow()
+        {
+            var list = new SortedLinkedList<string>((a, b) => a.CompareTo(b));
+            Assert.Empty(list);
+            list.Remove("Not Present");
+            Assert.Empty(list);
+        }
+
+        [Fact]
+        public void RemoveElementFromList()
+        {
+            const string elementToRemove = "Present";
+            var list = new SortedLinkedList<string>((a, b) => a.CompareTo(b));
+
+            list.Add("An element");
+            list.Add(elementToRemove);
+            list.Add("Another LMNT");
+
+            Assert.Equal(list.Count, 3);
+            Assert.True(list.Contains(elementToRemove));
+
+            list.Remove(elementToRemove);
+            Assert.Equal(list.Count, 2);
+            Assert.False(list.Contains(elementToRemove));
+        }
+
+        [Fact]
+        public void RemoveNotPresentElementFromList()
+        {
+            const string elementToRemove = "NOT Present";
+            var list = new SortedLinkedList<string>((a, b) => a.CompareTo(b));
+
+            list.Add("An element");
+            list.Add("Present");
+            list.Add("Another LMNT");
+
+            Assert.Equal(list.Count, 3);
+            Assert.False(list.Contains(elementToRemove));
+
+            list.Remove(elementToRemove);
+            Assert.Equal(list.Count, 3);
+            Assert.False(list.Contains(elementToRemove));
+        }
+
+        #endregion Remove Elements
+
+        #region Clear Elements
+
+        [Fact]
+        public void ClearElementsFromEmptyList()
+        {
+            var list = new SortedLinkedList<string>((a, b) => a.CompareTo(b));
+
+            Assert.Empty(list);
+            list.Clear();
+            Assert.Empty(list);
+        }
+
+        [Fact]
+        public void ClearElementsFromList()
+        {            
+            var list = new SortedLinkedList<string>((a, b) => a.CompareTo(b));
+
+            list.Add("A");
+            list.Add("B");
+            list.Add("C");
+
+            Assert.Equal(list.Count, 3);
+
+            list.Clear();
+            Assert.Empty(list);            
+        }
+
+        [Fact]
+        public void ClearElementsFromListThenAdd()
+        {
+            var list = new SortedLinkedList<string>((a, b) => a.CompareTo(b));
+
+            list.Add("A");
+            list.Add("B");
+            list.Add("C");
+
+            Assert.Equal(list.Count, 3);
+
+            list.Clear();
+            Assert.Empty(list);
+
+            list.Add("Z");
+
+            Assert.Equal(list.Count, 1);
+            Assert.True(list.Contains("Z"));
+        }
+
+
+        #endregion Clear Elements
+
     }
 }

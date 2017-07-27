@@ -12,15 +12,22 @@ namespace Elevator
 
         private LinkedList<T> _list;
         private Comparison<T> _comparisonLogic;
-        private ILog _log = LogManager.GetLogger(typeof(ElevatorSystem));
+        private ILog _log;
 
         public SortedLinkedList(Comparison<T> comparisonLogic)
         {
+            if(null == comparisonLogic)
+            {
+                throw new ArgumentNullException("comparisonLogic", "Comparison logic cannot be null!");
+            }
+
             _list = new LinkedList<T>();
             _comparisonLogic = comparisonLogic;
+            _log = LogManager.GetLogger(typeof(ElevatorSystem));
         }
 
-        public int Count {
+        public int Count
+        {
             get
             {
                 lock (sync_lock)
@@ -49,6 +56,7 @@ namespace Elevator
             {
                 throw new ArgumentNullException("Cannot add null element to list!");
             }
+
             lock (sync_lock)
             {
                 if (_list.First == null)
@@ -68,7 +76,10 @@ namespace Elevator
                         LinkedListNode<T> newNode = new LinkedListNode<T>(element);
                         _list.AddBefore(node, newNode);
 
-                        _log.Debug($"Added {element} between {newNode.Previous.Value} and {node.Value}.");
+                        _log.Debug($"Added {element} " + 
+                            (newNode.Previous == null 
+                                ? $"as the first element just before {node.Value}" 
+                                : $"between {newNode.Previous.Value} and {node.Value}."));
 
                         break;
                     }

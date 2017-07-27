@@ -176,7 +176,7 @@ namespace Elevator
 
             if (doorsHold)
             {
-                _log.Info("Elevator {Id} received doors hold command! Holding doors...");
+                _log.Info($"Elevator {Id} received doors hold command! Holding doors...");
             }
 
             return doorsHold;
@@ -318,7 +318,7 @@ namespace Elevator
 
         private void StopAtFloor(FloorRequest floorRequest)
         {            
-            _log.Info($"Elevator {Id} is stopping at floor {floorRequest.Floor}...");
+            _log.Info($"Elevator {Id} is stopping at {floorRequest.Floor}...");
             
             CycleDoors(floorRequest.Floor);
         }
