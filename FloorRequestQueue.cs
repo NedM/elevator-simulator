@@ -1,9 +1,11 @@
 using log4net;
 using System;
+using System.Collections;
+using System.Collections.Generic;
 
 namespace Elevator
 {
-    public class FloorRequestQueue
+    public class FloorRequestQueue : IEnumerable, IEnumerable<FloorRequest>
     {
         private ILog _log = LogManager.GetLogger(typeof(ElevatorSystem));
 
@@ -48,6 +50,16 @@ namespace Elevator
         public override string ToString()
         {
             return $"[{string.Join(", ", _queue)}]";
+        }
+
+        public IEnumerator GetEnumerator()
+        {
+            return ((IEnumerable)_queue).GetEnumerator();
+        }
+
+        IEnumerator<FloorRequest> IEnumerable<FloorRequest>.GetEnumerator()
+        {
+            return ((IEnumerable<FloorRequest>)_queue).GetEnumerator();
         }
     }
 }

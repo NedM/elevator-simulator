@@ -13,7 +13,7 @@ namespace ElevatorSimulator
 {
     class Program
     {
-        private struct Options
+        private class Options
         {
             public bool SimplePrompt { get; set; }
             public string[] Inputs { get; set; }
@@ -43,12 +43,12 @@ namespace ElevatorSimulator
 
             _system.RunAll();
 
-            if (_options.Inputs.Any())
+            if (_options?.Inputs?.Any() == true)
             {
                 HandleRequestInputs(_options.Inputs);
             }
 
-            if (_options.SimplePrompt)
+            if (_options?.SimplePrompt == true)
             {
                 DoSimpleUserPrompt();
             }
@@ -303,11 +303,8 @@ namespace ElevatorSimulator
             if (args.Contains("/?") || args.Contains("?"))
             {
                 ShowUsage();
-                return new Options()
-                {
-                    SimplePrompt = false,
-                    Inputs = null,
-                };
+
+                return null;
             }
 
             var opts = new Options()

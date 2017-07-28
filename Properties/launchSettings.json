@@ -1,8 +1,7 @@
 {
   "profiles": {
     "ElevatorSimulator": {
-      "commandName": "Project",
-      "commandLineArgs": "/s /i \"1D,9,3U,55D,7U\" /?"
+      "commandName": "Project"
     }
   }
 }

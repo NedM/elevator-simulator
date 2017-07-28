@@ -46,6 +46,26 @@ namespace Elevator
             return a.CompareTo(b) < 0;
         }
 
+        public static bool operator <=(Floor a, Floor b)
+        {
+            if (a == null || b == null)
+            {
+                throw new ArgumentNullException();
+            }
+
+            return a.CompareTo(b) <= 0;
+        }
+
+        public static bool operator >=(Floor a, Floor b)
+        {
+            if (a == null || b == null)
+            {
+                throw new ArgumentNullException();
+            }
+
+            return a.CompareTo(b) >= 0;
+        }
+
         public static bool operator ==(Floor a, Floor b)
         {
             if (ReferenceEquals(null, a))

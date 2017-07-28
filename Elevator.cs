@@ -1,5 +1,6 @@
 using log4net;
 using System;
+using System.Linq;
 using System.Text;
 using System.Threading;
 
@@ -202,11 +203,19 @@ namespace Elevator
 
             _log.Debug($"Moving elevator {Id} {dirString} 1 floor.");
             Thread.Sleep(ELEVATOR_SPEED);  //Simulate time required to move between floors
-            _log.Info($"Elevator {Id} is now at floor {CurrentFloor}.");
+            _log.Info($"Elevator {Id} is now at {CurrentFloor}.");
+        }
+
+        private bool AnyFloorsAbove(FloorRequestQueue queue)
+        {
+            //TODO: Use this instead?
+            return queue.Any(f => f.Floor >= CurrentFloor);
         }
 
         private bool NextRequestedFloorAbove(FloorRequestQueue queue)
-        {
+        {            
+            // TODO: Bug: if at floor 7 going up and request for stop at floor 9 in the up queue and 
+            // add a request for floor 2 up to the queue, instead of going to floor 9 first, the elevator will go down to service request at floor 2 first.
             return queue.Any && queue.Peek().Floor.CompareTo(CurrentFloor) >= 0;
         }
 
