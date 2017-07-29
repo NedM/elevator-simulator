@@ -38,7 +38,41 @@ namespace Elevator
 
         public int CompareTo(FloorRequest other)
         {
-            return this.Floor.CompareTo(other.Floor);
+            var compareResult = Floor.CompareTo(other.Floor);
+
+            if (compareResult == 0 && Direction != Direction.None && other.Direction != Direction.None)
+            {
+                compareResult = Direction.CompareTo(other.Direction);
+            }
+
+            return compareResult;
+        }
+
+        public override bool Equals(object obj)
+        {
+            if(obj == null)
+            {
+                return ReferenceEquals(this, obj);
+            }
+
+            FloorRequest request = obj as FloorRequest;
+
+            if(null != request)
+            {
+                return Equals(request);
+            }
+
+            return false;
+        }
+
+        public bool Equals(FloorRequest other)
+        {
+            return CompareTo(other) == 0;
+        }
+
+        public override int GetHashCode()
+        {
+            return Floor.GetHashCode() + Direction.GetHashCode();
         }
 
         public override string ToString()

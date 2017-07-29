@@ -1,5 +1,6 @@
 using log4net;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -55,14 +56,22 @@ namespace Elevator
                 {
                     if (!_upDirectionQueue.Any && !_downDirectionQueue.Any)
                     {
-                        //_log.Debug($"No requests to service for elevator {Id}.");
+                        if (_status != Status.Idle)
+                        {
+                            _log.Info($"Elevator {Id} is becoming idle!");
+                        }
+
                         _status = Status.Idle;
-                        Thread.Sleep(1000);
+                        Thread.Sleep(100);
                         continue;
                     }
 
+                    if (_status != Status.Running)
+                    {
+                        _log.Info($"Elevator {Id} is becoming active!");
+                    }
+
                     _status = Status.Running;
-                    //_log.Debug($"Elevator {Id} is running!");
                     ServiceFloorRequests();
                 }
 
@@ -128,7 +137,7 @@ namespace Elevator
         {
             if(request.Direction == Direction.None)
             {
-                return request.Floor.CompareTo(CurrentFloor) > 0 ? Direction.Up : Direction.Down;
+                return request.Floor > CurrentFloor ? Direction.Up : Direction.Down;
             }
 
             return request.Direction;
@@ -136,7 +145,7 @@ namespace Elevator
 
         private void Ascend()
         {
-            if (CurrentFloor.CompareTo(HighestFloor) < 0)
+            if (CurrentFloor < HighestFloor)
             {
                 MoveElevator(Direction.Up);
             }
@@ -144,25 +153,25 @@ namespace Elevator
 
         private void CycleDoors(Floor floor)
         {
-            _log.Info($"Elevator {Id} opening doors on floor {floor}.");
+            _log.Info($"Elevator {Id} opening doors on {floor}....");
             Thread.Sleep(1000); //Simulate time to stop at floor and open doors
 
             Random rand = new Random(DateTime.Now.Millisecond);
 
             Thread.Sleep(rand.Next(3000, 10000)); //Simulate time to open doors and admit passengers
-            _log.Info($"Elevator {Id} closing doors on floor {floor}...");
+            _log.Info($"Elevator {Id} closing doors on {floor}...");
 
             do
             {
                 Thread.Sleep(rand.Next(1000, 3000)); //Simulate time to close doors including any last minute additional passengers arriving
             } while (DoorsHeld());
 
-            _log.Info($"Elevator {Id} doors closed on floor {floor}...");
+            _log.Info($"Elevator {Id} doors closed on {floor}...");
         }
 
         private void Descend()
         {
-            if (CurrentFloor.CompareTo(LowestFloor) > 0)
+            if (CurrentFloor > LowestFloor)
             {
                 MoveElevator(Direction.Down);
             }
@@ -206,29 +215,53 @@ namespace Elevator
             _log.Info($"Elevator {Id} is now at {CurrentFloor}.");
         }
 
-        private bool AnyFloorsAbove(FloorRequestQueue queue)
+        private IEnumerable<FloorRequest> FloorsAboveCurrent(FloorRequestQueue queue)
         {
-            //TODO: Use this instead?
-            return queue.Any(f => f.Floor >= CurrentFloor);
+            return queue.Any ? queue.Where(f => f.Floor >= CurrentFloor) : null;
         }
 
-        private bool NextRequestedFloorAbove(FloorRequestQueue queue)
-        {            
-            // TODO: Bug: if at floor 7 going up and request for stop at floor 9 in the up queue and 
-            // add a request for floor 2 up to the queue, instead of going to floor 9 first, the elevator will go down to service request at floor 2 first.
-            return queue.Any && queue.Peek().Floor.CompareTo(CurrentFloor) >= 0;
+        private IEnumerable<FloorRequest> FloorsBelowCurrent(FloorRequestQueue queue)
+        {
+            return queue.Any ? queue.Where(f => f.Floor <= CurrentFloor) : null;
         }
 
-        private bool NextRequestedFloorBelow(FloorRequestQueue queue)
+        private FloorRequest GetNextRequestAbove()
         {
-            return queue.Any && queue.Peek().Floor.CompareTo(CurrentFloor) <= 0;
+            var nextRequestAbove = FloorsAboveCurrent(_upDirectionQueue)?.FirstOrDefault();
+
+            if (null == nextRequestAbove)
+            {
+                FloorRequest highestDownRequest = _downDirectionQueue.Peek();
+
+                nextRequestAbove = (highestDownRequest?.Floor >= CurrentFloor) ? highestDownRequest : null;
+            }
+
+            return nextRequestAbove;
+        }
+
+        private FloorRequest GetNextRequestBelow()
+        {
+            FloorRequest nextRequestBelow = FloorsBelowCurrent(_downDirectionQueue)?.FirstOrDefault();
+
+            if(null == nextRequestBelow)
+            {
+                FloorRequest lowestUpRequest = _upDirectionQueue.Peek();
+
+                nextRequestBelow = (lowestUpRequest?.Floor <= CurrentFloor) ? lowestUpRequest : null;
+            }
+
+            return nextRequestBelow;
         }
 
         private void ReverseDirectionOfTravel()
         {
+            StringBuilder sb = new StringBuilder($"Changing elevator {Id} direction from {Enum.GetName(typeof(Direction), DirectionOfTravel)}");
             DirectionOfTravel = DirectionOfTravel == Direction.Up 
                 ? Direction.Down 
                 : Direction.Up;
+
+            sb.Append($" to {Enum.GetName(typeof(Direction), DirectionOfTravel)}.");
+            _log.Debug(sb.ToString());
         }
 
         private void ServiceFloorRequests()
@@ -236,34 +269,37 @@ namespace Elevator
             switch (DirectionOfTravel)
             {
                 case Direction.Down:
-                    if (_downDirectionQueue.Any)
-                    {
-                        if (NextRequestedFloorBelow(_downDirectionQueue))
-                        {
-                            ServiceFloorRequestsInDownwardDirection();
-                        }
-                        else
-                        {
-                            Ascend();
-                        }
-                    }
-
+                    ServiceFloorRequestsInDownwardDirection();
                     break;
                 case Direction.Up:
                 default:
-                    if (_upDirectionQueue.Any)
-                    {
-                        if (NextRequestedFloorAbove(_upDirectionQueue))
-                        {
-                            ServiceFloorRequestInUpwardDirection();
-                        }
-                        else
-                        {
-                            Descend();
-                        }
-                    }
-
+                    ServiceFloorRequestInUpwardDirection();
                     break;
+            }
+        }
+
+        private void ServiceFloorRequestsInDownwardDirection()
+        {
+            FloorRequest nextRequestBelow = GetNextRequestBelow();
+
+            if (null == nextRequestBelow)
+            {
+                return;
+            }
+
+            if (nextRequestBelow.Floor != CurrentFloor)
+            {
+                Descend();
+                return;
+            }
+
+            if (nextRequestBelow.Direction != Direction.Up)
+            {
+                Floor stopFloor = nextRequestBelow.Floor;
+
+                _downDirectionQueue.Remove(nextRequestBelow);
+
+                StopAtFloor(stopFloor);
             }
 
             if (ShouldReverseDirections())
@@ -272,64 +308,84 @@ namespace Elevator
             }
         }
 
-        private void ServiceFloorRequestsInDownwardDirection()
-        {
-            if (ShouldStop(_downDirectionQueue))
-            {
-                FloorRequest stopFloor = null;
-                stopFloor = _downDirectionQueue.Dequeue();
-
-                StopAtFloor(stopFloor);
-            }
-            
-            if(NextRequestedFloorBelow(_downDirectionQueue))
-            {
-                Descend();
-            }
-        }
-
         private void ServiceFloorRequestInUpwardDirection()
         {
-            if (ShouldStop(_upDirectionQueue))
-            {
-                FloorRequest stopFloor = null;
+            FloorRequest nextRequestAbove = GetNextRequestAbove();
 
-                stopFloor = _upDirectionQueue.Dequeue();
+            if (null == nextRequestAbove)
+            {
+                return;
+            }
+
+            if (nextRequestAbove.Floor != CurrentFloor)
+            {
+                Ascend();
+                return;
+            }
+
+            if (nextRequestAbove.Direction != Direction.Down)
+            {
+                Floor stopFloor = nextRequestAbove.Floor;
+
+                _upDirectionQueue.Remove(nextRequestAbove);
 
                 StopAtFloor(stopFloor);
             }
 
-            if(NextRequestedFloorAbove(_upDirectionQueue))
+            if (ShouldReverseDirections())
             {
-                Ascend();
+                ReverseDirectionOfTravel();
             }
         }
 
         private bool ShouldReverseDirections()
         {
-            if (DirectionOfTravel == Direction.Up)
+            bool shouldReverse = false;
+
+            switch (DirectionOfTravel)
             {
-                return CurrentFloor == HighestFloor || !_upDirectionQueue.Any;
+                case Direction.Up:
+                    if(CurrentFloor == HighestFloor)
+                    {
+                        shouldReverse = true;
+                    }
+                    else
+                    {
+                        var nextRequestAbove = GetNextRequestAbove();
+
+                        if (null == nextRequestAbove || nextRequestAbove.Floor == CurrentFloor)
+                        {
+                            shouldReverse = true;
+                        }
+                    }                    
+                    break;
+                case Direction.Down:
+                    if (CurrentFloor == LowestFloor)
+                    {
+                        shouldReverse = true;
+                    }
+                    else
+                    {
+                        var nextRequestBelow = GetNextRequestBelow();
+
+                        if (null == nextRequestBelow || nextRequestBelow.Floor == CurrentFloor)
+                        {
+                            shouldReverse = true;
+                        }                        
+                    }
+                    break;
+                default:
+                    break;
             }
-
-            if (DirectionOfTravel == Direction.Down)
-            {
-                return CurrentFloor == LowestFloor || !_downDirectionQueue.Any;
-            }
-
-            return false;
-        }
-
-        private bool ShouldStop(FloorRequestQueue queue)
-        {
-            return queue.Any && queue.Peek().Floor == CurrentFloor;
-        }
-
-        private void StopAtFloor(FloorRequest floorRequest)
-        {            
-            _log.Info($"Elevator {Id} is stopping at {floorRequest.Floor}...");
             
-            CycleDoors(floorRequest.Floor);
+            return shouldReverse;
+        }
+
+        private void StopAtFloor(Floor floor)
+        {            
+            _log.Info($"Elevator {Id} is stopping at {floor}...");
+            
+            CycleDoors(floor);
         }
     }
 }

@@ -30,7 +30,7 @@ namespace Elevator
         {
             if(a == null || b == null)
             {
-                throw new ArgumentNullException();
+                return false;
             }
 
             return a.CompareTo(b) > 0;
@@ -40,7 +40,7 @@ namespace Elevator
         {
             if (a == null || b == null)
             {
-                throw new ArgumentNullException();
+                return false;
             }
 
             return a.CompareTo(b) < 0;
@@ -50,7 +50,7 @@ namespace Elevator
         {
             if (a == null || b == null)
             {
-                throw new ArgumentNullException();
+                return false;
             }
 
             return a.CompareTo(b) <= 0;
@@ -60,7 +60,7 @@ namespace Elevator
         {
             if (a == null || b == null)
             {
-                throw new ArgumentNullException();
+                return false;
             }
 
             return a.CompareTo(b) >= 0;

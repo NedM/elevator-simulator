@@ -19,6 +19,8 @@ namespace ElevatorSimulator
             public string[] Inputs { get; set; }
         }
 
+        private const ConsoleColor PROMPT_COLOR = ConsoleColor.White;
+        private const ConsoleColor ERROR_COLOR = ConsoleColor.Red;
         private const string EXIT_COMMAND = "exit";
         private static readonly Regex REQUEST_INPUT_FORMAT_REGEX = new Regex("^\\d+[DU]?$");
         private static ILog _log;
@@ -64,13 +66,17 @@ namespace ElevatorSimulator
         {
             Thread userInputThread = new Thread(() =>
             {
-                Console.WriteLine("Welcome to the Elevator System! " + Environment.NewLine +
-                    "Please enter floor requests with optional direction in the format [RequestFloorNumber[Direction (either \"U\" or \"D\")]]. e.g. \"5D\", \"3\", or \"10U\".");
+                WriteConsoleInfoLine("Welcome to the Elevator System! " + Environment.NewLine +
+                    "Please enter floor requests with optional direction in the format [RequestFloorNumber[Direction (either \"U\" or \"D\")]]." + Environment.NewLine +
+                    "e.g. \"5D\", \"3\", or \"10U\".");
+
+
                 try
                 {
                     while (true)
                     {
-                        Console.Write("::> ");
+                        WriteConsoleInfo("::> ");
+
                         string response = Console.ReadLine().ToUpper();
 
                         if (CheckForExitCommand(response.ToLower()))
@@ -80,7 +86,7 @@ namespace ElevatorSimulator
 
                         if (!REQUEST_INPUT_FORMAT_REGEX.IsMatch(response))
                         {
-                            Console.WriteLine($"Couldn't understand \"{response}\". Please enter inputs in the format \"8U\", \"17\", or \"9D\".");
+                            WriteConsoleErrorLine($"Couldn't understand \"{response}\". Please enter inputs in the format \"8U\", \"17\", or \"9D\".");
                             continue;
                         }
 
@@ -104,14 +110,14 @@ namespace ElevatorSimulator
                         int floor;
                         if (!int.TryParse(floorStr, out floor))
                         {
-                            Console.WriteLine($"Couldn't understand floor number {floorStr}.");
+                            WriteConsoleErrorLine($"Couldn't understand floor number {floorStr}.");
                             continue;
                         }
 
                         if (floor < _system.LowestFloorServiced.Number || floor > _system.HighestFloorServiced.Number)
                         {
-                            Console.WriteLine($"Floor number {floor} is outside of the allowed range of {_system.LowestFloorServiced.Number} - {_system.HighestFloorServiced.Number}." +
-                                " Please enter a floor number within that range.");
+                            WriteConsoleErrorLine($"Floor number {floor} is outside of the allowed range of {_system.LowestFloorServiced.Number} - {_system.HighestFloorServiced.Number}." + Environment.NewLine +
+                                "Please enter a floor number within that range.");
                             continue;
                         }
 
@@ -137,7 +143,7 @@ namespace ElevatorSimulator
         {
             Thread userInputThread = new Thread(() =>
             {
-                Console.WriteLine("Welcome to the Elevator System! " + Environment.NewLine +
+                WriteConsoleInfoLine("Welcome to the Elevator System! " + Environment.NewLine +
                     "Please enter selections at the prompts to enter floor requests. " + Environment.NewLine +
                     "Type \"exit\" at the prompt to terminate the program.");
 
@@ -201,13 +207,15 @@ namespace ElevatorSimulator
 
             int elevatorId = int.Parse(response);
 
-            Console.WriteLine("What floor do you want to go to?");
+            WriteConsoleInfoLine("What floor do you want to go to?");
             int floorNum = 0;
 
             do
             {
-                Console.WriteLine($"[{_system.LowestFloorServiced} - {_system.HighestFloorServiced}] Floor Number:> ");
+                WriteConsoleInfo($"[{_system.LowestFloorServiced} - {_system.HighestFloorServiced}] Floor Number:> ");
+
                 response = Console.ReadLine();
+
                 if (CheckForExitCommand(response))
                 {
                     return;
@@ -221,12 +229,14 @@ namespace ElevatorSimulator
         {
             string response = null;
 
-            Console.WriteLine("What floor are you on?");
+            WriteConsoleInfoLine("What floor are you on?");
+
             int floorNum = 0;
 
             do
             {
-                Console.WriteLine($"[{_system.LowestFloorServiced} - {_system.HighestFloorServiced}] Floor Number:> ");
+                WriteConsoleInfo($"[{_system.LowestFloorServiced} - {_system.HighestFloorServiced}] Floor Number:> ");
+                
                 response = Console.ReadLine();
 
                 if (CheckForExitCommand(response))
@@ -336,8 +346,9 @@ namespace ElevatorSimulator
 
             do
             {
-                Console.WriteLine(promptMessage);
-                Console.Write($"[{string.Join("/", expectedValues)}]:> ");
+                WriteConsoleInfoLine(promptMessage);
+                WriteConsoleInfo($"[{string.Join("/", expectedValues)}]:> ");
+
                 response = Console.ReadLine().ToLowerInvariant();
             } while (!expectedValues.Where(v => string.Compare(v.ToLowerInvariant(), response) == 0).Any());
 
@@ -357,7 +368,28 @@ namespace ElevatorSimulator
                 "\t\"2\" would be a directionless request to stop at floor 2.\n" +
                 "\t\"28D\" would be a request at floor 28 to go Down. Requests for floors out of the range of the system will be ignored.");
 
-            Console.WriteLine(sb.ToString());
+            WriteConsoleInfoLine(sb.ToString());
+        }
+
+        private static void WriteConsoleErrorLine(string errorMsg)
+        {
+            Console.ForegroundColor = ERROR_COLOR;
+            Console.WriteLine(errorMsg);
+            Console.ResetColor();
+        }
+
+        private static void WriteConsoleInfo(string message)
+        {
+            Console.ForegroundColor = PROMPT_COLOR;
+            Console.Write(message);
+            Console.ResetColor();
+        }
+
+        private static void WriteConsoleInfoLine(string message)
+        {
+            Console.ForegroundColor = PROMPT_COLOR;
+            Console.WriteLine(message);
+            Console.ResetColor();
         }
     }
 }

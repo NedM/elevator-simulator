@@ -23,6 +23,12 @@ namespace Elevator
 
         public void Add(FloorRequest request)
         {
+            if (_queue.Contains(request))
+            {
+                _log.Debug($"Queue already contains a {request}. Discarding....");
+                return;
+            }
+
             _queue.Add(request);
             _log.Debug($"Added request {request} to queue. The queue currently holds {_queue.Count} requests.");
         }

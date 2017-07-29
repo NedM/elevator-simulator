@@ -1,6 +1,6 @@
-﻿using Xunit;
-using Elevator;
+﻿using Elevator;
 using System;
+using Xunit;
 
 namespace ElevatorSimulatorTest
 {
