@@ -67,7 +67,8 @@ namespace ElevatorSimulator
             Thread userInputThread = new Thread(() =>
             {
                 WriteConsoleInfoLine("Welcome to the Elevator System! " + Environment.NewLine +
-                    "Please enter floor requests with optional direction in the format [RequestFloorNumber[Direction (either \"U\" or \"D\")]]." + Environment.NewLine +
+                    "Please enter floor requests with optional direction" + Environment.NewLine +
+                    "in the format [RequestFloorNumber[Direction (either \"U\" or \"D\")]]." + Environment.NewLine +
                     "e.g. \"5D\", \"3\", or \"10U\".");
 
 
@@ -220,7 +221,7 @@ namespace ElevatorSimulator
                 {
                     return;
                 }
-            } while (!int.TryParse(response, out floorNum) && floorNum <= _system.HighestFloorServiced.Number && floorNum >= _system.LowestFloorServiced.Number);
+            } while (!int.TryParse(response, out floorNum) || floorNum > _system.HighestFloorServiced.Number || floorNum < _system.LowestFloorServiced.Number);
 
             _system.GetElevator(elevatorId).RequestFloor(floorNum, Direction.None);
         }
@@ -244,7 +245,7 @@ namespace ElevatorSimulator
                     return;
                 }
 
-            } while ((!int.TryParse(response, out floorNum)) || floorNum > _system.HighestFloorServiced.Number || floorNum < _system.LowestFloorServiced.Number);
+            } while (!int.TryParse(response, out floorNum) || floorNum > _system.HighestFloorServiced.Number || floorNum < _system.LowestFloorServiced.Number);
 
             Floor floor = Building.Instance.GetFloor(floorNum);
 
